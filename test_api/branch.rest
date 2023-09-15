@@ -1,0 +1,18 @@
+GET http://localhost:3001/api/branches
+
+###
+
+GET http://localhost:3001/api/branches/cdc58005-2046-4ad3-beae-cbbacfe82509
+
+###a
+POST http://localhost:3001/api/branches
+Content-Type: application/json
+
+{
+    "name": "สองพระยา",
+    "address": "ไม่ทราบ",
+    "telNum": "0987911234"
+}
+
+###
+DELETE http://localhost:3001/api/branches/cdc58005-2046-4ad3-beae-cbbacfe82509

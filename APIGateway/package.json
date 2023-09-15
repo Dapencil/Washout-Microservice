@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "@grpc/grpc-js": "^1.9.3",
+    "@grpc/proto-loader": "^0.7.9",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "install": "^0.13.0",
+    "nodemon": "^3.0.1",
+    "npm": "^10.1.0"
+  },
+  "name": "api-gateway-washout",
+  "version": "1.0.0",
+  "main": "app.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

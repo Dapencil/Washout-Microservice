@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+service MachineService{
+    rpc GetAll(Empty) returns (MachineList){}
+    rpc Get(MachineId) returns (MachineItem){}
+    rpc Insert(MachineItem) returns (MachineItem){}
+    rpc Update(MachineItem) returns (MachineItem){}
+    rpc Remove(MachineId) returns (Empty){}
+}
+
+message Empty{}
+
+message MachineItem{
+    string id=1;
+    string branchId =2;
+    string status=3;
+    string type=4;
+}
+
+message MachineList{
+    repeated MachineItem machines=1;
+}
+
+message MachineId{
+    string id=1;
+}
