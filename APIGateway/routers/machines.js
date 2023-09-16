@@ -14,6 +14,10 @@ router.get("/:id", (req, res) => {
   machineService.get({ id: req.params.id }, (err, data) => {
     if (!err) {
       res.json(data);
+    } else {
+      res
+        .status(404)
+        .json({ error: "Machine item with the given ID not found" });
     }
   });
 });
@@ -51,7 +55,10 @@ router.patch("/", (req, res) => {
 
 router.delete("/:id", (req, res) => {
   machineService.remove({ id: req.params.id }, (err, _) => {
-    if (err) throw err;
+    if (err)
+      res
+        .status(404)
+        .json({ error: "Machine item with the given ID not found" });
     console.log("Machine Item removed successfully");
     res.sendStatus(200);
   });
