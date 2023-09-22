@@ -2,17 +2,17 @@ GET http://localhost:3001/api/branches
 
 ###
 
-GET http://localhost:3001/api/branches/cdc58005-2046-4ad3-beae-cbbacfe82509
+GET http://localhost:3001/api/branches/753c2c9e-f49a-4e90-8353-110bac646170
 
-###a
+###
 POST http://localhost:3001/api/branches
 Content-Type: application/json
 
 {
-    "name": "สองพระยา",
+    "name": "สยาม",
     "address": "ไม่ทราบ",
     "telNum": "0987911234"
 }
 
 ###
-DELETE http://localhost:3001/api/branches/cdc58005-2046-4ad3-beae-cbbacfe82509
+DELETE http://localhost:3001/api/branches/3de86728-700f-4456-a025-2973a79e61ff

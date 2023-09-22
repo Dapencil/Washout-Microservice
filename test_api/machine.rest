@@ -2,7 +2,7 @@ GET http://localhost:3001/api/machines
 
 ###
 
-GET http://localhost:3001/api/machines/3c292250-0630-4c38-a862-ee5b992489cf
+GET http://localhost:3001/api/machines/05d08d64-9b02-4b1e-8808-8dd41dad94eb
 
 ###
 POST http://localhost:3001/api/machines
@@ -10,9 +10,9 @@ Content-Type: application/json
 
 {
     "branchId": "some-branch",
-    "status": "working",
+    "status": "Not Available",
     "type": "20"
 }
 
 ###
-DELETE http://localhost:3001/api/machines/3c292250-0630-4c38-a862-ee5b992489cf
+DELETE http://localhost:3001/api/machines/05d08d64-9b02-4b1e-8808-8dd41dad94eb

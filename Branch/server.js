@@ -47,7 +47,7 @@ server.addService(protoDescriptor.BranchService.service, {
   },
   insert: (call, callback) => {
     let branchItem = call.request;
-    branchItem.id = "some-id";
+    branchItem.id = "3de86728-700f-4456-a025-2973a79e61ff";
     branches.push(branchItem);
     callback(null, branchItem);
   },
