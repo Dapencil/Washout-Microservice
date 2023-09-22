@@ -90,6 +90,6 @@ server.bindAsync(
   grpc.ServerCredentials.createInsecure(),
   () => {
     server.start();
-    console.log(`Branch Service Started at PORT ${PORT}`);
+    console.log(`Machine Service Started at PORT ${PORT}`);
   }
 );

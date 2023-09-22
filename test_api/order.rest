@@ -1,0 +1,18 @@
+GET http://localhost:3001/api/orders
+
+###
+
+GET http://localhost:3001/api/orders/054dd859-1ee2-44c6-9d47-748e341ad6ca
+
+###
+POST http://localhost:3001/api/orders
+Content-Type: application/json
+
+{
+    "userId": "some_user_id",
+    "machineId": "some_machine_id",
+    "timestamp": "15:00:00"
+}
+
+###
+DELETE http://localhost:3001/api/orders/some_order_id
