@@ -15,4 +15,14 @@ Content-Type: application/json
 }
 
 ###
+PATCH  http://localhost:3001/api/machines/05d08d64-9b02-4b1e-8808-8dd41dad94eb
+Content-Type: application/json
+
+{
+    "branchId": "some-branch",
+    "status": "working",
+    "type": "20"
+}
+
+###
 DELETE http://localhost:3001/api/machines/05d08d64-9b02-4b1e-8808-8dd41dad94eb

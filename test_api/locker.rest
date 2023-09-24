@@ -1,4 +1,4 @@
-GET http://localhost:3001/api/lockers
+GET http://localhost:3001/api/lockers/
 
 ###
 
@@ -12,6 +12,17 @@ Content-Type: application/json
     "branchId": "some_branch_ja",
     "userId": "some_user_ja"
 }
+
+###
+
+PATCH http://localhost:3001/api/lockers/800274fb-42db-4520-9671-127457cfae15
+Content-Type: application/json
+
+{
+    "branchId": "some_branch_ja2",
+    "userId": "some_user_ja2"
+}
+
 
 ###
 DELETE http://localhost:3001/api/lockers/some-locker-id

@@ -14,7 +14,7 @@ let protoDescriptor =
   grpc.loadPackageDefinition(packageDefinition).LockerService;
 
 const lockerService = new protoDescriptor(
-  "localhost:30045",
+  "localhost:30043",
   grpc.credentials.createInsecure()
 );
 

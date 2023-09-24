@@ -37,7 +37,7 @@ router.post("/", (req, res) => {
   });
 });
 
-router.patch("/", (req, res) => {
+router.patch("/:id", (req, res) => {
   const updateBranchItem = {
     id: req.body.id,
     name: req.body.name,

@@ -35,7 +35,7 @@ router.post("/", (req, res) => {
   });
 });
 
-router.patch("/", (req, res) => {
+router.patch("/:id", (req, res) => {
   const updateOrderItem = {
     id: req.body.id,
     userId: req.body.userId,

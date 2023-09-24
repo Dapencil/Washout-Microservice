@@ -36,7 +36,7 @@ router.post("/", (req, res) => {
   });
 });
 
-router.patch("/", (req, res) => {
+router.patch("/:id", (req, res) => {
   const updateLockerItem = {
     id: req.body.id,
     branchId: req.body.branchId,

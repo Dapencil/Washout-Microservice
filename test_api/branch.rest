@@ -1,4 +1,4 @@
-GET http://localhost:3001/api/branches
+GET http://localhost:3001/api/branches/
 
 ###
 
@@ -6,6 +6,17 @@ GET http://localhost:3001/api/branches/753c2c9e-f49a-4e90-8353-110bac646170
 
 ###
 POST http://localhost:3001/api/branches
+Content-Type: application/json
+
+{
+    "name": "สยาม",
+    "address": "ไม่ทราบ",
+    "telNum": "0987911234"
+}
+
+###
+
+PATCH http://localhost:3001/api/branches/753c2c9e-f49a-4e90-8353-110bac646170
 Content-Type: application/json
 
 {
