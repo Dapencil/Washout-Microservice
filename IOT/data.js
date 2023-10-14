@@ -91,6 +91,7 @@ class Machine {
     this.status = "finished";
     // in case the door is (available,open)
     this.isOpen = false;
+    this.remainingTime = 0;
   }
 
   start() {
@@ -101,6 +102,7 @@ class Machine {
       console.log("Please Close the Door");
     } else {
       console.log(`Start The Machine ${this.mid}`);
+      this.remainingTime = 30;
       this.status = "working";
       let intervel = setInterval(() => {
         if (this.remainingTime === 0) {
@@ -108,7 +110,7 @@ class Machine {
           this.forceFinish();
         } else {
           this.remainingTime--;
-          console.log(`Remaining Time: ${remainingTime} (second)`);
+          console.log(`Remaining Time: ${this.remainingTime} (second)`);
         }
       }, 1000);
       // multiply above with 60 to make it minute

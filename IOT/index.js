@@ -46,6 +46,18 @@ app.post("/close/:id", (req, res) => {
   res.redirect("/");
 });
 
+app.post("/start/:id", (req, res) => {
+  let id = req.params.id;
+  machines[id].start();
+  res.redirect("/");
+});
+
+app.post("/forceFinish/:id", (req, res) => {
+  let id = req.params.id;
+  machines[id].forceFinish();
+  res.redirect("/");
+});
+
 // app.post("/remove", (req, res) => {
 //   client.remove({ id: req.body.menuItem_id }, (err, _) => {
 //     if (err) throw err;
