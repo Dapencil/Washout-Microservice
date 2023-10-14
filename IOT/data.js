@@ -85,6 +85,7 @@ class Machine {
     }
   }
 
+  // how to clear interval;
   forceFinish() {
     console.log("Machine is Force to be finished");
     this.status = "finished";
