@@ -3,18 +3,6 @@ syntax = "proto3";
 service OrderService{
     rpc GetAll(Empty) returns (OrderList){}
     rpc Get(OrderId) returns (OrderItem){}
-    rpc Insert(OrderItem) returns (OrderItem){}
-    rpc Update(OrderItem) returns (OrderItem){}
-    rpc Remove(OrderId) returns (Empty){}
-}
-
-message Empty{}
-
-message OrderItsyntax = "proto3";
-
-service OrderService{
-    rpc GetAll(Empty) returns (OrderList){}
-    rpc Get(OrderId) returns (OrderItem){}
     rpc GetRecentOrder(UserId) returns (OrderList){}
     rpc Insert(OrderItem) returns (OrderItem){}
     rpc Update(OrderItem) returns (OrderItem){}
@@ -40,17 +28,4 @@ message OrderId{
 
 message UserId{
     string userId=1;
-}em{
-    string id=1;
-    string userId=2;
-    string machineId=3;
-    string timestamp=4;
-}
-
-message OrderList{
-    repeated OrderItem orders=1;
-}
-
-message OrderId{
-    string id=1;
 }
