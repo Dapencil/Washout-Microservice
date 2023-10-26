@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+service LockerService {
+    rpc GetAll(Empty) returns (LockerList){}
+    rpc Get(LockerId) returns (LockerItem){}
+    rpc GetFromBranch(BranchId) returns (LockerList){}
+    rpc Insert(LockerItem) returns (LockerItem){}
+    rpc Update(LockerItem) returns (LockerItem){}
+    rpc Remove(LockerId) returns (Empty){}
+    rpc MoveClothes(Move) returns (LockerItem){}
+}
+
+message Empty{}
+
+message LockerItem {
+    string id=1;
+    string branchId=2;
+    string userId=3;
+}
+
+message LockerList {
+    repeated LockerItem lockers=1;
+}
+
+message LockerId {
+    string id=1;
+}
+
+message BranchId{
+    string id=1;
+}
+
+message Move {
+    string machineId=1;
+    string lockerId=2;
+}

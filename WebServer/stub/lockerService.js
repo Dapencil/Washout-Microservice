@@ -1,4 +1,4 @@
-const PROTO_PATH = "../proto/branch.proto";
+const PROTO_PATH = "./proto/locker.proto";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
@@ -11,11 +11,11 @@ var packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 });
 
 let protoDescriptor =
-  grpc.loadPackageDefinition(packageDefinition).BranchService;
+  grpc.loadPackageDefinition(packageDefinition).LockerService;
 
-const branchService = new protoDescriptor(
+const lockerService = new protoDescriptor(
   "localhost:30043",
   grpc.credentials.createInsecure()
 );
 
-module.exports = branchService;
+module.exports = lockerService;

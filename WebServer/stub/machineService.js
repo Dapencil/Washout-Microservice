@@ -1,4 +1,4 @@
-const PROTO_PATH = "../proto/locker.proto";
+const PROTO_PATH = "./proto/machine.proto";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
@@ -11,11 +11,11 @@ var packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 });
 
 let protoDescriptor =
-  grpc.loadPackageDefinition(packageDefinition).LockerService;
+  grpc.loadPackageDefinition(packageDefinition).MachineService;
 
-const lockerService = new protoDescriptor(
-  "localhost:30043",
+const machineService = new protoDescriptor(
+  "localhost:30044",
   grpc.credentials.createInsecure()
 );
 
-module.exports = lockerService;
+module.exports = machineService;

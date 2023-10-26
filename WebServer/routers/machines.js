@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const machineService = require("../stub/machineService");
+const machineService = require("./stub/machineService");
+const branchService = require("./stub/branchService");
 
 router.get("/", (req, res) => {
-  machineService.getAll(null, (err, data) => {
+  machineService.getAll(null, (err, machines) => {
     if (!err) {
-      res.json(data);
+      branchS;
     }
   });
 });
