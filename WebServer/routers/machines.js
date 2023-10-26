@@ -4,9 +4,21 @@ const machineService = require("./stub/machineService");
 const branchService = require("./stub/branchService");
 
 router.get("/", (req, res) => {
-  machineService.getAll(null, (err, machines) => {
+  machineService.getAll(null, (err, data1) => {
     if (!err) {
-      branchS;
+      branchService.getAll(null, (err2, data2) => {
+        if (!err2) {
+          let branches = data2.reduce((map, obj) => {
+            map[obj.id] = obj.name;
+            return map;
+          }, {});
+          let machines = data1.machines.map((machine) => ({
+            ...machine,
+            branchName: branches[machine.branchId],
+          }));
+          res.json(machines);
+        }
+      });
     }
   });
 });
