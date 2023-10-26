@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  washing-db:
+    container_name: washing_db
+    image: "mongo:3.6"
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - ./db_washing:/data/db
+  branch-db:
+    container_name: branch_db
+    image: "mongo:3.6"
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - ./db_branch:/data/db
+  auth-db:
+    container_name: auth_db
+    image: mariadb:10
+    ports:
+      - "3306:3306"
+    environment:
+      TZ: Asia/Bangkok
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_HOST: "%"
+    volumes:
+      - ./db_auth:/var/lib/mysql

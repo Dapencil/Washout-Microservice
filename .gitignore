@@ -3,3 +3,8 @@ Branch/node_modules
 Branch/config.env
 Machine/node_modules
 Machine/config.env
+IOT/node_modules
+Order/node_modules
+Order/config.env
+Notification/node_modules
+Notification/config.env

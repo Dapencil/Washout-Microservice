@@ -1,8 +1,27 @@
-const PROTO_PATH_Branch = "../proto/branch.proto";
-const PROTO_PATH_Locker = "../proto/locker.proto";
+require("dotenv").config({ path: "./config.env" });
+
+const PROTO_PATH_Branch = "./proto/branch.proto";
+const PROTO_PATH_Locker = "./proto/locker.proto";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
+const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
+
+mongoose.connect(process.env.DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("Connected to Database"));
+
+const Branch = require("./model/branch");
+const Locker = require("./model/locker");
+
+const orderService = require("./stub/orderService");
+const machineService = require("./stub/machineService");
 
 var packageDefinition_Branch = protoLoader.loadSync(PROTO_PATH_Branch, {
   keepCase: true,
@@ -27,41 +46,13 @@ let protoDescriptor_Locker = grpc.loadPackageDefinition(
 
 const server = new grpc.Server();
 
-let branches = [
-  {
-    id: "cdc58005-2046-4ad3-beae-cbbacfe82509",
-    name: "สี่พระยา",
-    address: "ไม่ทราบ",
-    telNum: "0987911234",
-  },
-  {
-    id: "753c2c9e-f49a-4e90-8353-110bac646170",
-    name: "ตึกอักษร",
-    address: "ไม่ทราบ",
-    telNum: "0987911234",
-  },
-];
-
-let lockers = [
-  {
-    id: "800274fb-42db-4520-9671-127457cfae15",
-    branchId: "cdc58005-2046-4ad3-beae-cbbacfe82509",
-    userId: "some_user",
-  },
-  {
-    id: "b3f4925b-1d75-489b-9bce-a70442b470fa",
-    branchId: "753c2c9e-f49a-4e90-8353-110bac646170",
-    userId: "some_user",
-  },
-];
-
 server.addService(protoDescriptor_Branch.BranchService.service, {
-  getAll: (_, callback) => {
+  getAll: async (_, callback) => {
+    let branches = await Branch.find();
     callback(null, { branches });
   },
-  get: (call, callback) => {
-    let branchItem = branches.find((n) => n.id == call.request.id);
-
+  get: async (call, callback) => {
+    let branchItem = await Branch.findOne({ id: call.request.id }).exec();
     if (branchItem) {
       callback(null, branchItem);
     } else {
@@ -71,19 +62,19 @@ server.addService(protoDescriptor_Branch.BranchService.service, {
       });
     }
   },
-  insert: (call, callback) => {
-    let branchItem = call.request;
-    branchItem.id = "3de86728-700f-4456-a025-2973a79e61ff";
-    branches.push(branchItem);
+  insert: async (call, callback) => {
+    let branchItem = new Branch({ ...call.request, id: uuidv4() });
+    await branchItem.save();
     callback(null, branchItem);
   },
-  update: (call, callback) => {
-    let existingBranchItem = branches.find((n) => n.Id == call.request.id);
+  update: async (call, callback) => {
+    let existingBranchItem = await Branch.findOne({
+      id: call.request.id,
+    }).exec();
 
     if (existingBranchItem) {
-      existingBranchItem.name = call.request.name;
-      existingBranchItem.address = call.request.address;
-      existingBranchItem.telNum = call.request.telNum;
+      Object.assign(existingBranchItem, call.request);
+      await existingBranchItem.save();
       callback(null, existingBranchItem);
     } else {
       callback({
@@ -92,11 +83,13 @@ server.addService(protoDescriptor_Branch.BranchService.service, {
       });
     }
   },
-  remove: (call, callback) => {
-    let existingBranchItem = branches.findIndex((n) => n.id == call.request.id);
+  remove: async (call, callback) => {
+    let existingBranchItem = await Branch.findOne({
+      id: call.request.id,
+    }).exec();
 
-    if (existingBranchItem != -1) {
-      branches.splice(existingBranchItem, 1);
+    if (existingBranchItem) {
+      await existingBranchItem.deleteOne();
       callback(null, {});
     } else {
       callback({
@@ -108,14 +101,18 @@ server.addService(protoDescriptor_Branch.BranchService.service, {
 });
 
 server.addService(protoDescriptor_Locker.LockerService.service, {
-  getAll: (_, callback) => {
+  getAll: async (_, callback) => {
+    let lockers = await Locker.find();
     callback(null, { lockers });
   },
-  get: (call, callback) => {
-    let LockerItem = lockers.find((n) => n.id == call.request.id);
-
-    if (LockerItem) {
-      callback(null, LockerItem);
+  getFromBranch: async (call, callback) => {
+    let lockers = await Locker.find({ branchId: call.request.id });
+    callback(null, { lockers });
+  },
+  get: async (call, callback) => {
+    let lockerItem = await Locker.findOne({ id: call.request.id }).exec();
+    if (lockerItem) {
+      callback(null, lockerItem);
     } else {
       callback({
         code: grpc.status.NOT_FOUND,
@@ -123,18 +120,18 @@ server.addService(protoDescriptor_Locker.LockerService.service, {
       });
     }
   },
-  insert: (call, callback) => {
-    let lockerItem = call.request;
-    lockerItem.id = "some-locker-id";
-    lockers.push(lockerItem);
+  insert: async (call, callback) => {
+    let lockerItem = new Locker({ ...call.request, id: uuidv4() });
+    await lockerItem.save();
     callback(null, lockerItem);
   },
-  update: (call, callback) => {
-    let existingLockerItem = lockers.find((n) => n.Id == call.request.id);
-
+  update: async (call, callback) => {
+    let existingLockerItem = await Locker.findOne({
+      id: call.request.id,
+    }).exec();
     if (existingLockerItem) {
-      existingLockerItem.branchId = call.request.branchId;
-      existingLockerItem.userId = call.request.userId;
+      Object.assign(existingLockerItem, call.request);
+      await existingLockerItem.save();
       callback(null, existingLockerItem);
     } else {
       callback({
@@ -143,12 +140,37 @@ server.addService(protoDescriptor_Locker.LockerService.service, {
       });
     }
   },
-  remove: (call, callback) => {
-    let existingLockerItem = lockers.findIndex((n) => n.id == call.request.id);
+  remove: async (call, callback) => {
+    let existingLockerItem = await Locker.findOne({
+      id: call.request.id,
+    }).exec();
 
-    if (existingLockerItem != -1) {
-      lockers.splice(existingLockerItem, 1);
+    if (existingLockerItem) {
+      await existingLockerItem.deleteOne();
       callback(null, {});
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+  moveClothes: async (call, callback) => {
+    let lockerItem = await Locker.findOne({ id: call.request.lockerId }).exec();
+    if (lockerItem) {
+      await machineService.get(
+        { id: call.request.machineId },
+        async (err, machineItem) => {
+          lockerItem.orderId = machineItem.currentOrder;
+          await lockerItem.save();
+          await machineService.update(
+            { ...machineItem, currentOrder: "null" },
+            (err, data) => {
+              callback(null, lockerItem);
+            }
+          );
+        }
+      );
     } else {
       callback({
         code: grpc.status.NOT_FOUND,

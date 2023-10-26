@@ -1,9 +1,22 @@
-const PROTO_PATH = "../proto/order.proto";
+require("dotenv").config({ path: "./config.env" });
 
+const PROTO_PATH = process.env.PROTO_PATH || "./proto/order.proto";
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
+const { v4: uuidv4 } = require("uuid");
+const mongoose = require("mongoose");
 
-var packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+mongoose.connect(process.env.DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("Connected to Database"));
+const Order = require("./model/order");
+
+let packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
   longs: String,
   enums: String,
@@ -14,30 +27,21 @@ let protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 
 const server = new grpc.Server();
 
-let orders = [
-  {
-    id: "054dd859-1ee2-44c6-9d47-748e341ad6ca",
-    userId: "some_user_id",
-    machineId: "some_machine_id",
-    timestamp: "12:00:00",
-  },
-  {
-    id: "e20515b6-7d8d-435e-9372-eddca6a8bb59",
-    userId: "some_user_id",
-    machineId: "some_machine_id",
-    timestamp: "18:00:00",
-  },
-];
-
 server.addService(protoDescriptor.OrderService.service, {
-  getAll: (_, callback) => {
+  getAll: async (_, callback) => {
+    let orders = await Order.find();
     callback(null, { orders });
   },
-  get: (call, callback) => {
-    let OrderItem = orders.find((n) => n.id == call.request.id);
-
-    if (OrderItem) {
-      callback(null, OrderItem);
+  getRecentOrder: async (call, callback) => {
+    let orders = await Order.find({ userId: call.request.userId })
+      .sort({ timestamp: -1 })
+      .limit(5);
+    callback(null, { orders });
+  },
+  get: async (call, callback) => {
+    let orderItem = await Order.findOne({ id: call.request.id }).exec();
+    if (orderItem) {
+      callback(null, orderItem);
     } else {
       callback({
         code: grpc.status.NOT_FOUND,
@@ -45,14 +49,13 @@ server.addService(protoDescriptor.OrderService.service, {
       });
     }
   },
-  insert: (call, callback) => {
-    let orderItem = call.request;
-    orderItem.id = "some_order_id";
-    orders.push(orderItem);
+  insert: async (call, callback) => {
+    let orderItem = new Order({ ...call.request, id: uuidv4() });
+    await orderItem.save();
     callback(null, orderItem);
   },
-  update: (call, callback) => {
-    let existingOrderItem = orders.find((n) => n.Id == call.request.id);
+  update: async (call, callback) => {
+    let existingOrderItem = await Order.findOne({ id: call.request.id }).exec();
 
     if (existingOrderItem) {
       existingOrderItem.userId = call.request.userId;
@@ -66,11 +69,11 @@ server.addService(protoDescriptor.OrderService.service, {
       });
     }
   },
-  remove: (call, callback) => {
-    let existingOrderItem = orders.findIndex((n) => n.id == call.request.id);
+  remove: async (call, callback) => {
+    let existingOrderItem = await Order.findOne({ id: call.request.id }).exec();
 
-    if (existingOrderItem != -1) {
-      orders.splice(existingOrderItem, 1);
+    if (existingOrderItem) {
+      await existingOrderItem.deleteOne();
       callback(null, {});
     } else {
       callback({

@@ -17,12 +17,12 @@
   <body>
     <div class="container">
       <div class="py-5 text-center">
-        <img
+        {{! <img
           class="d-block mx-auto mb-4"
           src="https://www.cp.eng.chula.ac.th/wp-content/uploads/2014/08/ChulaEngineeringComputer-formal.png"
           alt="Logo"
           height="72"
-        />
+        /> }}
         <h2>Wash Out</h2>
         <h6>IOT machine stub</h6>
       </div>
@@ -31,30 +31,54 @@
         <thead>
           <tr>
             <th>Machine ID</th>
+            <th>Branch</th>
             <th>Type</th>
             <th>Status</th>
             <th>Door Status</th>
             <th>Remain Time</th>
+            <th>Current Order</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {{#each results}}
             <tr>
-              <td>{{mid}}</td>
-              <td>{{type}}</td>
+              <td>{{id}}</td>
+              <td>{{branchId}}</td>
+              <td>{{machineType}}</td>
               <td>{{status}}</td>
-              {{#if isOpen}} 
-              <td>Open</td>
-              {{else}} 
-              <td>Close</td>
+              {{#if isOpen}}
+                <td>Open</td>
+              {{else}}
+                <td>Close</td>
               {{/if}}
               <td>{{remainingTime}}</td>
+              {{#if currentOrder}}
+                <td>{{currentOrder}}</td>
+              {{else}}
+                <td>None</td>
+              {{/if}}
               <td>
-                <a href="javascript:void(0);" class="btn btn-sm open-door btn-primary" data-id="{{mid}}">Open</a>
-                <a href="javascript:void(0);" class="btn btn-sm close-door btn-primary" data-id="{{mid}}">Close</a>
-                <a href="javascript:void(0);" class="btn btn-sm start-machine btn-success" data-id="{{mid}}">Start</a>
-                <a href="javascript:void(0);" class="btn btn-sm force-finish btn-danger" data-id="{{mid}}">Force Finish</a>
+                <a
+                  href="javascript:void(0);"
+                  class="btn btn-sm open-door btn-primary"
+                  data-id="{{id}}"
+                >Open</a>
+                <a
+                  href="javascript:void(0);"
+                  class="btn btn-sm close-door btn-primary"
+                  data-id="{{id}}"
+                >Close</a>
+                <a
+                  href="javascript:void(0);"
+                  class="btn btn-sm start-machine btn-success"
+                  data-id="{{id}}"
+                >Start</a>
+                <a
+                  href="javascript:void(0);"
+                  class="btn btn-sm force-finish btn-danger"
+                  data-id="{{id}}"
+                >Force Finish</a>
               </td>
             </tr>
           {{else}}
@@ -78,61 +102,27 @@
     ></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function () { 
-            $('#Menus_table').on('click','.open-door',function () { 
-                const machineId = $(this).data('id'); 
-                const url ='http://localhost:3001/open/' + machineId; 
-                console.log(machineId);
-                jQuery.ajax({ 
-                    type: 'POST', 
-                    url: url, 
-                    data: $('#add-row-form').serialize(), 
-                    success: function (response) { 
-                        window.location.reload();
-                    }, error: function (error) { 
-                    } 
-                }) 
-            }).on('click', '.close-door', function () {
-                const machineId = $(this).data('id'); 
-                const url = 'http://localhost:3001/close/' + machineId; 
-                console.log(machineId); 
-                jQuery.ajax({ 
-                    type: 'POST', 
-                    url: url, 
-                    data: $('#add-row-form').serialize(), 
-                    success: function (response) {
-                        window.location.reload();
-                    }, error: function (error) { 
-                    } 
-                }) 
-            }).on('click', '.start-machine', function () {
-                const machineId = $(this).data('id'); 
-                const url = 'http://localhost:3001/start/' + machineId; 
-                console.log(machineId); 
-                jQuery.ajax({ 
-                    type: 'POST', 
-                    url: url, 
-                    data: $('#add-row-form').serialize(), 
-                    success: function (response) {
-                        window.location.reload();
-                    }, error: function (error) { 
-                    } 
-                })
-            }).on('click', '.force-finish', function () {
-                const machineId = $(this).data('id'); 
-                const url = 'http://localhost:3001/forceFinish/' + machineId; 
-                console.log(machineId); 
-                jQuery.ajax({ 
-                    type: 'POST', 
-                    url: url, 
-                    data: $('#add-row-form').serialize(), 
-                    success: function (response) {
-                        window.location.reload();
-                    }, error: function (error) { 
-                    } 
-                })
-            });   
-        });
+      $(document).ready(function () {
+      $('#Menus_table').on('click','.open-door',function () { const machineId =
+      $(this).data('id'); const url ='http://localhost:3001/open/' + machineId;
+      console.log(machineId); jQuery.ajax({ type: 'POST', url: url, data:
+      $('#add-row-form').serialize(), success: function (response) {
+      window.location.reload(); }, error: function (error) { } }) }).on('click',
+      '.close-door', function () { const machineId = $(this).data('id'); const
+      url = 'http://localhost:3001/close/' + machineId; console.log(machineId);
+      jQuery.ajax({ type: 'POST', url: url, data:
+      $('#add-row-form').serialize(), success: function (response) {
+      window.location.reload(); }, error: function (error) { } }) }).on('click',
+      '.start-machine', function () { const machineId = $(this).data('id');
+      const url = 'http://localhost:3001/start/' + machineId;
+      console.log(machineId); jQuery.ajax({ type: 'POST', url: url, data:
+      $('#add-row-form').serialize(), success: function (response) {
+      window.location.reload(); }, error: function (error) { } }) }).on('click',
+      '.force-finish', function () { const machineId = $(this).data('id'); const
+      url = 'http://localhost:3001/forceFinish/' + machineId;
+      console.log(machineId); jQuery.ajax({ type: 'POST', url: url, data:
+      $('#add-row-form').serialize(), success: function (response) {
+      window.location.reload(); }, error: function (error) { } }) }); });
     </script>
   </body>
 

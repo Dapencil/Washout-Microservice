@@ -1,7 +1,25 @@
-const PROTO_PATH = "../proto/machine.proto";
+require("dotenv").config({ path: "./config.env" });
+
+const PROTO_PATH = process.env.PROTO_PATH || "./proto/machine.proto";
+const BROKER_URL = process.env.BROKER_URL || "amqp://localhost";
+const PORT = process.env.PORT || 30044;
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
+const amqp = require("amqplib/callback_api");
+const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
+const orderService = require("./stub/orderService");
+
+mongoose.connect(process.env.DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("Connected to Database"));
+const Machine = require("./model/machine");
 
 var packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -14,30 +32,33 @@ let protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 
 const server = new grpc.Server();
 
-let machines = [
-  {
-    id: "3c292250-0630-4c38-a862-ee5b992489cf",
-    branchId: "cdc58005-2046-4ad3-beae-cbbacfe82509",
-    status: "Available",
-    type: "7",
-  },
-  {
-    id: "05d08d64-9b02-4b1e-8808-8dd41dad94eb",
-    branchId: "753c2c9e-f49a-4e90-8353-110bac646170",
-    status: "Available",
-    type: "12",
-  },
-];
+function sentMessage(message, queueName) {
+  amqp.connect(BROKER_URL, function (error0, connection) {
+    if (error0) {
+      throw error0;
+    }
+
+    connection.createChannel(function (error1, channel) {
+      if (error1) {
+        throw error1;
+      }
+      channel.assertQueue(queueName, { durable: true });
+      channel.sendToQueue(queueName, Buffer.from(message), {
+        persistent: true,
+      });
+    });
+  });
+}
 
 server.addService(protoDescriptor.MachineService.service, {
-  getAll: (_, callback) => {
+  getAll: async (_, callback) => {
+    let machines = await Machine.find();
     callback(null, { machines });
   },
-  get: (call, callback) => {
-    let MachineItem = machines.find((n) => n.id == call.request.id);
-
-    if (MachineItem) {
-      callback(null, MachineItem);
+  get: async (call, callback) => {
+    let machineItem = await Machine.findOne({ id: call.request.id }).exec();
+    if (machineItem) {
+      callback(null, machineItem);
     } else {
       callback({
         code: grpc.status.NOT_FOUND,
@@ -45,19 +66,22 @@ server.addService(protoDescriptor.MachineService.service, {
       });
     }
   },
-  insert: (call, callback) => {
-    let machineItem = call.request;
-    machineItem.id = "some-id";
-    machines.push(machineItem);
+  insert: async (call, callback) => {
+    let machineItem = new Machine({ ...call.request, id: uuidv4() });
+    await machineItem.save();
     callback(null, machineItem);
   },
-  update: (call, callback) => {
-    let existingMachineItem = machines.find((n) => n.Id == call.request.id);
-
+  update: async (call, callback) => {
+    let existingMachineItem = await Machine.findOne({
+      id: call.request.id,
+    }).exec();
     if (existingMachineItem) {
-      existingMachineItem.branchId = call.request.branchId;
-      existingMachineItem.status = call.request.status;
-      existingMachineItem.type = call.request.type;
+      if (call.request.currentOrder === "null") {
+        call.request.currentOrder = null;
+      }
+      console.log(call.request);
+      Object.assign(existingMachineItem, call.request);
+      await existingMachineItem.save();
       callback(null, existingMachineItem);
     } else {
       callback({
@@ -66,13 +90,12 @@ server.addService(protoDescriptor.MachineService.service, {
       });
     }
   },
-  remove: (call, callback) => {
-    let existingMachineItem = machines.findIndex(
-      (n) => n.id == call.request.id
-    );
-
-    if (existingMachineItem != -1) {
-      machines.splice(existingMachineItem, 1);
+  remove: async (call, callback) => {
+    let existingMachineItem = await Machine.findOne({
+      id: call.request.id,
+    }).exec();
+    if (existingMachineItem) {
+      await existingMachineItem.deleteOne();
       callback(null, {});
     } else {
       callback({
@@ -81,9 +104,185 @@ server.addService(protoDescriptor.MachineService.service, {
       });
     }
   },
-});
+  getFromBranch: async (call, callback) => {
+    let machines = await Machine.find({
+      branchId: call.request.branchId,
+    }).exec();
 
-const PORT = process.env.PORT || 30044;
+    if (machines) {
+      callback(null, { machines });
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+  getFinishedInBranch: async (call, callback) => {
+    let machines = await Machine.find({
+      branchId: call.request.branchId,
+      status: "finished",
+    }).exec();
+    if (machines) {
+      callback(null, { machines });
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+  start: async (call, callback) => {
+    let machineItem = await Machine.findOne({
+      id: call.request.machineId,
+    }).exec();
+
+    if (machineItem) {
+      if (machineItem.status === "available" && !machineItem.isOpen) {
+        await orderService.insert(
+          {
+            userId: call.request.userId,
+            machineId: call.request.machineId,
+          },
+          async (err, data) => {
+            if (err) throw err;
+            console.log("New Order created successfully", data);
+            machineItem.currentOrder = data.id;
+            machineItem.status = "working";
+            machineItem.remainingTime = 55;
+            await machineItem.save();
+            callback(null, machineItem);
+          }
+        );
+      } else {
+        callback({
+          code: grpc.status.FAILED_PRECONDITION,
+          details:
+            "The Door must be closed and the machine should be available",
+        });
+      }
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+  forceStop: async (call, callback) => {
+    let machineItem = await Machine.findOne({
+      id: call.request.id,
+    }).exec();
+
+    if (machineItem) {
+      machineItem.status = "available";
+      machineItem.isOpen = "false";
+      machineItem.remainingTime = 0;
+      machineItem.currentOrder = null;
+      await machineItem.save();
+      callback(null, machineItem);
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+  updateTime: async (call, callback) => {
+    let machineItem = await Machine.findOne({
+      id: call.request.id,
+    }).exec();
+
+    if (machineItem) {
+      machineItem.remainingTime = call.request.remainingTime;
+      if (machineItem.remainingTime == 5) {
+        await orderService.get(
+          {
+            id: machineItem.currentOrder,
+          },
+          async (err, data) => {
+            if (err) throw err;
+            sentMessage(`${data.userId} 5`, "noti_queue");
+          }
+        );
+      } else if (machineItem.remainingTime == 0) {
+        machineItem.status = "finished";
+        await orderService.get(
+          {
+            id: machineItem.currentOrder,
+          },
+          async (err, data) => {
+            if (err) throw err;
+            sentMessage(`${data.userId} 0`, "noti_queue");
+          }
+        );
+      }
+      await machineItem.save();
+      callback(null, machineItem);
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+  close: async (call, callback) => {
+    let machineItem = await Machine.findOne({
+      id: call.request.id,
+    }).exec();
+
+    if (machineItem) {
+      if (machineItem.isOpen) {
+        machineItem.isOpen = false;
+        await machineItem.save();
+        callback(null, machineItem);
+      } else {
+        callback({
+          code: grpc.status.FAILED_PRECONDITION,
+          details: "Door must be opened",
+        });
+      }
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+  open: async (call, callback) => {
+    let machineItem = await Machine.findOne({
+      id: call.request.id,
+    }).exec();
+
+    if (machineItem) {
+      if (!machineItem.isOpen) {
+        if (machineItem.status === "working")
+          callback({
+            code: grpc.status.FAILED_PRECONDITION,
+            details: "The machine is working",
+          });
+        else {
+          if (machineItem.status === "finished") {
+            machineItem.status = "available";
+            machineItem.currentOrder = null;
+          }
+          machineItem.isOpen = true;
+          await machineItem.save();
+          callback(null, machineItem);
+        }
+      } else {
+        callback({
+          code: grpc.status.FAILED_PRECONDITION,
+          details: "Door must be closed",
+        });
+      }
+    } else {
+      callback({
+        code: grpc.status.NOT_FOUND,
+        details: "NOT Found",
+      });
+    }
+  },
+});
 
 server.bindAsync(
   `127.0.0.1:${PORT}`,

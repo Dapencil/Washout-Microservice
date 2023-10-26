@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+service MachineService{
+    rpc GetAll(Empty) returns (MachineList){}
+    rpc GetFromBranch(BranchId) returns (MachineList){}
+    rpc GetFinishedInBranch(BranchId) returns (MachineList){}
+    rpc Get(MachineId) returns (MachineItem){}
+    rpc Insert(MachineItem) returns (MachineItem){}
+    rpc Update(MachineItem) returns (MachineItem){}
+    rpc UpdateTime(MachineItem) returns (MachineItem){}
+    rpc Remove(MachineId) returns (Empty){}
+    rpc Start(OrderItem) returns (MachineItem){}
+    rpc ForceStop(MachineId) returns (MachineItem){}
+}
+
+message Empty{}
+
+message MachineItem{
+    string id=1;
+    string branchId =2;
+    string status=3;
+    string machineType=4;
+    bool isOpen=5;
+    int32 remainingTime=6;
+    string currentOrder=7;
+}
+
+message MachineList{
+    repeated MachineItem machines=1;
+}
+
+message BranchId{
+    string branchId=1;
+}
+message MachineId{
+    string id=1;
+}
+message OrderItem{
+    string machineId=1;
+    string userId=2;
+}
