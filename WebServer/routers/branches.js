@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const branchService = require("./stub/branchService");
+const branchService = require("../stub/branchService");
 
 router.get("/", (req, res) => {
   branchService.getAll(null, (err, data) => {

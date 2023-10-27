@@ -31,3 +31,9 @@ services:
       MYSQL_ROOT_HOST: "%"
     volumes:
       - ./db_auth:/var/lib/mysql
+  rabbit_mq:
+    container_name: rabbit_broker
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"

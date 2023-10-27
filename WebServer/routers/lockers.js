@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const lockerService = require("./stub/lockerService");
+const lockerService = require("../stub/lockerService");
 
 router.get("/", (req, res) => {
   lockerService.getAll(null, (err, data) => {

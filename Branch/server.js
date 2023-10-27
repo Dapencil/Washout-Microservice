@@ -20,7 +20,6 @@ db.once("open", () => console.log("Connected to Database"));
 const Branch = require("./model/branch");
 const Locker = require("./model/locker");
 
-const orderService = require("./stub/orderService");
 const machineService = require("./stub/machineService");
 
 var packageDefinition_Branch = protoLoader.loadSync(PROTO_PATH_Branch, {
