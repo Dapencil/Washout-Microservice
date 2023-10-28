@@ -37,3 +37,15 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+  order_service:
+    container_name: order_container
+    depends_on:
+      - washing-db
+    build: ./Order
+    environment:
+      - NODE_ENV=PROD
+      - PROD_IP=order_service
+    links:
+      - washing-db
+    ports:
+      - "30046:30046"

@@ -9,7 +9,6 @@ Order/config.env
 Notification/node_modules
 Notification/config.env
 Notification/washout-334d6-firebase-adminsdk-h65wc-138255580b.json
-./docker-compose.yml
 db_auth/*
 db_branch/*
 db_washing/*
