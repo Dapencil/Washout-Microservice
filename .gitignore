@@ -1,4 +1,6 @@
 WebServer/node_modules
+Auth/node_modules
+Auth/config.env
 Branch/node_modules
 Branch/config.env
 Machine/node_modules
