@@ -9,9 +9,10 @@ const DB_TABLE = process.env.DB_TABLE || "User";
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS) || 0;
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3003;
 const ACCESS_TOKEN_EXPIRE_TIME = process.env.ACCESS_TOKEN_EXPIRE_TIME || "5m";
 const REFRESH_TOKEN_EXPIRE_TIME = process.env.REFRESH_TOKEN_EXPIRE_TIME || "1d";
+const DB_Staff = "Staff";
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -99,57 +100,6 @@ app.get("/", accessTokenValidate, async (req, res) => {
   res.json(results);
 });
 
-app.post("/user", async (req, res) => {
-  const { username, password, deviceToken } = req.body;
-  try {
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const conn = await pool.getConnection();
-    const queryString = `INSERT INTO ${DB_TABLE}(uid, branchID, username, password, role, deviceToken) VALUES (DEFAULT,DEFAULT,?, ?, DEFAULT,?)`;
-    await conn.query(queryString, [username, hashedPassword, deviceToken]);
-    res.status(200).json({ message: "Signup Complete" });
-  } catch (e) {
-    console.log(e);
-    res.json({ message: "Error" });
-  }
-});
-
-app.post("/staff", async (req, res) => {
-  const { branchId, username, password, deviceToken } = req.body;
-  try {
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const conn = await pool.getConnection();
-    const queryString = `INSERT INTO ${DB_TABLE}(uid, branchID, username, password, role, deviceToken) VALUES (DEFAULT,?,?, ?, "staff",?)`;
-    await conn.query(queryString, [
-      branchId,
-      username,
-      hashedPassword,
-      deviceToken,
-    ]);
-    res.status(200).json({ message: "Staff Added" });
-  } catch (e) {
-    console.log(e);
-    res.json({ message: "Error" });
-  }
-});
-
-app.post("/refreshToken", refreshTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT * FROM ${DB_TABLE} WHERE uid = ? `;
-  const [results] = await conn.query(queryString, [req.user.uid]);
-
-  if (results.length === 0) {
-    return res.status(400).json({ error: "User not found" });
-  }
-  const user = results;
-  const access_token = generateAccessToken(user);
-  const refresh_token = generateRefreshToken(user);
-
-  return res.json({
-    access_token,
-    refresh_token,
-  });
-});
-
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -191,11 +141,108 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post("/refreshToken", refreshTokenValidate, async (req, res) => {
+  const conn = await pool.getConnection();
+  const queryString = `SELECT * FROM ${DB_TABLE} WHERE uid = ? `;
+  const [results] = await conn.query(queryString, [req.user.uid]);
+
+  if (results.length === 0) {
+    return res.status(400).json({ error: "User not found" });
+  }
+  const user = results;
+  const access_token = generateAccessToken(user);
+  const refresh_token = generateRefreshToken(user);
+
+  return res.json({
+    access_token,
+    refresh_token,
+  });
+});
+
+app.post("/user", async (req, res) => {
+  const { username, password, deviceToken } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const conn = await pool.getConnection();
+    const queryString = `INSERT INTO ${DB_TABLE}(uid, branchID, username, password, role, deviceToken) VALUES (DEFAULT,DEFAULT,?, ?, DEFAULT,?)`;
+    await conn.query(queryString, [username, hashedPassword, deviceToken]);
+    res.status(200).json({ message: "Signup Complete" });
+  } catch (e) {
+    console.log(e);
+    res.json({ message: "Error" });
+  }
+});
+
 app.get("/deviceToken", accessTokenValidate, async (req, res) => {
   const conn = await pool.getConnection();
   const queryString = `SELECT deviceToken FROM ${DB_TABLE} WHERE uid = ?`;
   const [results] = await conn.query(queryString, [req.user.uid]);
   res.json(results);
+});
+
+app.get("/staffs/", accessTokenValidate, async (req, res) => {
+  const conn = await pool.getConnection();
+  const queryString = `SELECT uid, branchID, fName, lName FROM staff`;
+  const results = await conn.query(queryString, []);
+  res.json(results);
+});
+
+app.get("/staffs/:uid", accessTokenValidate, async (req, res) => {
+  const conn = await pool.getConnection();
+  const queryString = `SELECT uid, branchID, fName, lName  FROM staff WHERE uid = ?`;
+  const [results] = await conn.query(queryString, [req.params.uid]);
+  res.json(results);
+});
+
+app.post("/staffs/", accessTokenValidate, async (req, res) => {
+  const { branchID, username, password, fName, lName } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const conn = await pool.getConnection();
+    const queryString_addUser = `INSERT INTO ${DB_TABLE}(uid, branchID, username, password, role, deviceToken) VALUES (DEFAULT, ?, ?, ?, "staff", NULL)`;
+    await conn.query(queryString_addUser, [branchID, username, hashedPassword]);
+    const queryString_getUID = `SELECT uid FROM ${DB_TABLE} WHERE username = ?`;
+    const [results] = await conn.query(queryString_getUID, [username]);
+    const queryString_addStaff = `INSERT INTO ${DB_Staff}(id, uid, branchID, fName, lName) VALUES (DEFAULT, ?, ?, ?, ?)`;
+    await conn.query(queryString_addStaff, [
+      results.uid,
+      branchID,
+      fName,
+      lName,
+    ]);
+
+    res.status(200).json({ message: "Staff Added" });
+  } catch (e) {
+    console.log(e);
+    res.json({ message: "Error" });
+  }
+});
+
+app.patch("/staffs/:uid", accessTokenValidate, async (req, res) => {
+  const { branchID } = req.body;
+  try {
+    const conn = await pool.getConnection();
+    const queryString = `UPDATE ${DB_Staff} SET branchID = ? WHERE uid = ?`;
+    await conn.query(queryString, [branchID, req.params.uid]);
+    res.status(200).json({ message: "Update branchID successfully" });
+  } catch (e) {
+    console.log(e);
+    res.json({ message: "Error" });
+  }
+});
+
+app.delete("/staffs/:uid", accessTokenValidate, async (req, res) => {
+  try {
+    const conn = await pool.getConnection();
+    const queryString_delStaff = `DELETE FROM ${DB_Staff} WHERE uid = ?`;
+    await conn.query(queryString_delStaff, [req.params.uid]);
+    const queryString_delUser = `DELETE FROM ${DB_TABLE} WHERE uid = ?`;
+    await conn.query(queryString_delUser, [req.params.uid]);
+    res.status(200).json({ message: "Staff deleted" });
+  } catch (e) {
+    console.log(e);
+    res.json({ message: "Error" });
+  }
 });
 
 app.listen(PORT, () => {

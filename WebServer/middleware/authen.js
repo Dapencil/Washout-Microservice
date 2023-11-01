@@ -3,7 +3,9 @@ const axios = require("axios");
 const auth = (role) => {
   return (req, res, next) => {
     axios
-      .get("/", { headers: { Authorization: req.headers["authorization"] } })
+      .get("http://localhost:3003/", {
+        headers: { Authorization: req.headers["authorization"] },
+      })
       .then(function (response) {
         if (response.data.role === role) {
           res.status(200);
@@ -13,6 +15,7 @@ const auth = (role) => {
         }
       })
       .catch(function (error) {
+        console.log("Error At auth");
         next(error);
       });
   };
