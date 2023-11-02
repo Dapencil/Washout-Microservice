@@ -1,0 +1,33 @@
+GET http://localhost:3003/staffs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2M2U3N2NiNS03NzAyLTExZWUtOTg1OS0wODhmYzMzYTRkOTEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2OTg3MzMyNzgsImV4cCI6MTY5ODc1MTI3OH0.m5DwVC2tC8Et1aAxCLgeFQO3ZO82IBLbwkEEUnvu5K8
+###
+
+GET http://localhost:3003/staffs/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2M2U3N2NiNS03NzAyLTExZWUtOTg1OS0wODhmYzMzYTRkOTEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2OTg3MzMyNzgsImV4cCI6MTY5ODc1MTI3OH0.m5DwVC2tC8Et1aAxCLgeFQO3ZO82IBLbwkEEUnvu5K8
+
+
+###
+POST http://localhost:3003/staffs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2M2U3N2NiNS03NzAyLTExZWUtOTg1OS0wODhmYzMzYTRkOTEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2OTg3MzMyNzgsImV4cCI6MTY5ODc1MTI3OH0.m5DwVC2tC8Et1aAxCLgeFQO3ZO82IBLbwkEEUnvu5K8
+Content-Type: application/json
+
+{
+    "branchID":"dc875cc4-9b41-4798-b230-3f9e8bab454f",
+    "username": "staff1",
+    "password" : "1234",
+    "fName" : "Jake",
+    "lName" : "Sim"
+}
+
+###
+PATCH http://localhost:3001/api/orders/054dd859-1ee2-44c6-9d47-748e341ad6ca
+Content-Type: application/json
+
+{
+    "userId": "some_user_id2",
+    "machineId": "some_machine_id2",
+    "timestamp": "16:00:00"
+}
+
+###
+DELETE http://localhost:3001/api/orders/some_order_id

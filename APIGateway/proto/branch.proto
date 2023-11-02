@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+service BranchService {
+    rpc GetAll(Empty) returns (BranchList){}
+    rpc Get(BranchId) returns (BranchItem){}
+    rpc Insert(BranchItem) returns (BranchItem){}
+    rpc Update(BranchItem) returns (BranchItem){}
+    rpc Remove(BranchId) returns (Empty){}
+}
+
+message Empty{}
+
+message BranchItem {
+    string id=1;
+    string name=2;
+    string address=3;
+    string telNum=4;
+}
+
+message BranchList {
+    repeated BranchItem branches=1;
+}
+
+message BranchId {
+    string id=1;
+}
