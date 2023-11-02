@@ -189,14 +189,21 @@ app.get("/getUID", accessTokenValidate, async (req, res) => {
 
 app.get("/staffs/", accessTokenValidate, async (req, res) => {
   const conn = await pool.getConnection();
-  const queryString = `SELECT uid, branchID, fName, lName FROM staff`;
+  const queryString = `SELECT uid, branchID, fName, lName FROM ${DB_Staff}`;
   const results = await conn.query(queryString, []);
+  res.json(results);
+});
+
+app.get("/users/:uid", accessTokenValidate, async (req, res) => {
+  const conn = await pool.getConnection();
+  const queryString = `SELECT uid, username  FROM ${DB_TABLE} WHERE uid = ?`;
+  const [results] = await conn.query(queryString, [req.params.uid]);
   res.json(results);
 });
 
 app.get("/staffs/:uid", accessTokenValidate, async (req, res) => {
   const conn = await pool.getConnection();
-  const queryString = `SELECT uid, branchID, fName, lName  FROM staff WHERE uid = ?`;
+  const queryString = `SELECT uid, branchID, fName, lName  FROM ${DB_Staff} WHERE uid = ?`;
   const [results] = await conn.query(queryString, [req.params.uid]);
   res.json(results);
 });
