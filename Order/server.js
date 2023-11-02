@@ -4,7 +4,7 @@ const PROTO_PATH = process.env.PROTO_PATH || "./proto/order.proto";
 const NODE_ENV = process.env.NODE_ENV || "DEV";
 const PORT = process.env.PORT || 30046;
 const DATABASE_URL = process.env[`${NODE_ENV}_DATABASE_URL`];
-const IP = processs.env[`${NODE_EVN}_IP`] || "127.0.0.1";
+const IP = process.env[`${NODE_ENV}_IP`] || "127.0.0.1";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");

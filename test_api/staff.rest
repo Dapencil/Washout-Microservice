@@ -15,7 +15,6 @@ Content-Type: application/json
     "branchID":"dc875cc4-9b41-4798-b230-3f9e8bab454f",
     "username": "staff1",
     "password" : "1234",
-    "deviceToken" : "This is Device Token",
     "fName" : "Jake",
     "lName" : "Sim"
 }
