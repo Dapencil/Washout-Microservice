@@ -173,9 +173,16 @@ app.post("/user", async (req, res) => {
   }
 });
 
-app.get("/deviceToken", accessTokenValidate, async (req, res) => {
+app.get("/deviceToken/:uid", accessTokenValidate, async (req, res) => {
   const conn = await pool.getConnection();
   const queryString = `SELECT deviceToken FROM ${DB_TABLE} WHERE uid = ?`;
+  const [results] = await conn.query(queryString, [req.params.uid]);
+  res.json(results);
+});
+
+app.get("/getUID", accessTokenValidate, async (req, res) => {
+  const conn = await pool.getConnection();
+  const queryString = `SELECT uid FROM ${DB_TABLE} WHERE uid = ?`;
   const [results] = await conn.query(queryString, [req.user.uid]);
   res.json(results);
 });
