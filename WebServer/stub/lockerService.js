@@ -1,5 +1,5 @@
 const PROTO_PATH = "./proto/locker.proto";
-
+const LOCKER_IP = process.env.LOCKER_IP || "localhost";
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
 
@@ -14,7 +14,7 @@ let protoDescriptor =
   grpc.loadPackageDefinition(packageDefinition).LockerService;
 
 const lockerService = new protoDescriptor(
-  "localhost:30043",
+  `${LOCKER_IP}:30043`,
   grpc.credentials.createInsecure()
 );
 

@@ -1,9 +1,10 @@
 const axios = require("axios");
+const AUTH_URL = process.env.AUTH_URL || "http://localhost:3003/";
 
 const auth = (role) => {
   return (req, res, next) => {
     axios
-      .get("http://localhost:3003/", {
+      .get(AUTH_URL, {
         headers: { Authorization: req.headers["authorization"] },
       })
       .then(function (response) {
