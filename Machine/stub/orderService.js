@@ -1,4 +1,5 @@
 const PROTO_PATH = "./proto/order.proto";
+const ORDER_IP = process.env.ORDER_IP || "localhost";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
@@ -14,7 +15,7 @@ let protoDescriptor =
   grpc.loadPackageDefinition(packageDefinition).OrderService;
 
 const orderService = new protoDescriptor(
-  "localhost:30046",
+  `${ORDER_IP}:30046`,
   grpc.credentials.createInsecure()
 );
 

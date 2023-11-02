@@ -5,17 +5,6 @@ const machineService = require("./stub/machineService");
 
 const app = express();
 
-function setMachineTimer(id) {
-  let remainingTime = 55;
-  const interval = setInterval(() => {
-    if (remainingTime == 0) clearInterval(interval);
-    machineService.updateTime(
-      { id, remainingTime: remainingTime-- },
-      (err, data) => {}
-    );
-  }, 1000);
-}
-
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 
@@ -53,7 +42,7 @@ app.post("/start/:id", (req, res) => {
   let id = req.params.id;
   machineService.start({ machineId: id, userId: "IOT" }, (err, data) => {
     if (err) console.log("Error:", err.details);
-    else setMachineTimer(id);
+    // else setMachineTimer(id);
     res.redirect("/");
   });
 });

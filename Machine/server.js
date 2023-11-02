@@ -1,8 +1,11 @@
 require("dotenv").config({ path: "./config.env" });
 
+const NODE_ENV = process.env.NODE_ENV || "DEV";
 const PROTO_PATH = process.env.PROTO_PATH || "./proto/machine.proto";
 const BROKER_URL = process.env.BROKER_URL || "amqp://localhost";
+const DATABASE_URL = process.env[`${NODE_ENV}_DATABASE_URL`];
 const PORT = process.env.PORT || 30044;
+const IP = process.env[`${NODE_ENV}_IP`] || "0.0.0.0";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
@@ -11,7 +14,7 @@ const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const orderService = require("./stub/orderService");
 
-mongoose.connect(process.env.DATABASE_URL, {
+mongoose.connect(DATABASE_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -37,7 +40,7 @@ function sentMessage(message, queueName) {
     if (error0) {
       throw error0;
     }
-
+    console.log("Connected to Rabbit MQ");
     connection.createChannel(function (error1, channel) {
       if (error1) {
         throw error1;
@@ -151,6 +154,7 @@ server.addService(protoDescriptor.MachineService.service, {
             machineItem.status = "working";
             machineItem.remainingTime = 55;
             await machineItem.save();
+            setMachineTimer(machineItem);
             callback(null, machineItem);
           }
         );
@@ -178,44 +182,6 @@ server.addService(protoDescriptor.MachineService.service, {
       machineItem.isOpen = "false";
       machineItem.remainingTime = 0;
       machineItem.currentOrder = null;
-      await machineItem.save();
-      callback(null, machineItem);
-    } else {
-      callback({
-        code: grpc.status.NOT_FOUND,
-        details: "NOT Found",
-      });
-    }
-  },
-  updateTime: async (call, callback) => {
-    let machineItem = await Machine.findOne({
-      id: call.request.id,
-    }).exec();
-
-    if (machineItem) {
-      machineItem.remainingTime = call.request.remainingTime;
-      if (machineItem.remainingTime == 5) {
-        await orderService.get(
-          {
-            id: machineItem.currentOrder,
-          },
-          async (err, data) => {
-            if (err) throw err;
-            sentMessage(`${data.userId} 5`, "noti_queue");
-          }
-        );
-      } else if (machineItem.remainingTime == 0) {
-        machineItem.status = "finished";
-        await orderService.get(
-          {
-            id: machineItem.currentOrder,
-          },
-          async (err, data) => {
-            if (err) throw err;
-            sentMessage(`${data.userId} 0`, "noti_queue");
-          }
-        );
-      }
       await machineItem.save();
       callback(null, machineItem);
     } else {
@@ -284,8 +250,42 @@ server.addService(protoDescriptor.MachineService.service, {
   },
 });
 
+const updateTime = async (machineItem) => {
+  machineItem.remainingTime--;
+  if (machineItem.remainingTime == 5) {
+    await orderService.get(
+      {
+        id: machineItem.currentOrder,
+      },
+      async (err, data) => {
+        if (err) throw err;
+        sentMessage(`${data.userId} 5`, "noti_queue");
+      }
+    );
+  } else if (machineItem.remainingTime == 0) {
+    machineItem.status = "finished";
+    await orderService.get(
+      {
+        id: machineItem.currentOrder,
+      },
+      async (err, data) => {
+        if (err) throw err;
+        sentMessage(`${data.userId} 0`, "noti_queue");
+      }
+    );
+  }
+  await machineItem.save();
+};
+
+function setMachineTimer(machineItem) {
+  const interval = setInterval(() => {
+    if (machineItem.remainingTime == 0) clearInterval(interval);
+    else updateTime(machineItem);
+  }, 1000);
+}
+
 server.bindAsync(
-  `127.0.0.1:${PORT}`,
+  `${IP}:${PORT}`,
   grpc.ServerCredentials.createInsecure(),
   () => {
     server.start();

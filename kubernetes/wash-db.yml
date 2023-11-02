@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: washdb-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: washdb
+  template:
+    metadata:
+      name: washdb-pods
+      labels:
+        app: washdb
+    spec:
+      containers:
+        - name: washdb-container
+          image: mongo:3.6
+          volumeMounts:
+            - name: washdb-storage
+              mountPath: /data/db
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "root"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "password"
+      volumes:
+        - name: washdb-storage
+          persistentVolumeClaim:
+            claimName: washdb-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: washdb-service
+spec:
+  type: ClusterIP
+  selector:
+    app: washdb
+  ports:
+    - port: 27017
+      targetPort: 27017
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: washdb-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi

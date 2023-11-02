@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  washing-db:
+  washdb-service:
     container_name: washing_db
     image: "mongo:3.6"
     ports:
@@ -10,7 +10,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
       - ./db_washing:/data/db
-  branch-db:
+  branchdb-service:
     container_name: branch_db
     image: "mongo:3.6"
     ports:
@@ -20,7 +20,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
       - ./db_branch:/data/db
-  auth-db:
+  authdb-service:
     container_name: auth_db
     image: mariadb:10
     ports:
@@ -31,21 +31,49 @@ services:
       MYSQL_ROOT_HOST: "%"
     volumes:
       - ./db_auth:/var/lib/mysql
-  rabbit_mq:
+  rabbit-mq:
     container_name: rabbit_broker
     image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-  order_service:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  order-service:
     container_name: order_container
     depends_on:
-      - washing-db
+      - washdb-service
     build: ./Order
     environment:
       - NODE_ENV=PROD
-      - PROD_IP=order_service
+      - PROD_IP=order-service
     links:
-      - washing-db
+      - washdb-service
     ports:
       - "30046:30046"
+  noti-service:
+    container_name: noti_container
+    build: ./Notification
+    restart: on-failure
+    depends_on:
+      - rabbit-mq
+    environment:
+      - BROKER_URL=amqp://rabbit-mq
+      - AUTH_URL=http://auth-service:3001/deviceToken
+    links:
+      - rabbit-mq
+  machine-service:
+    container_name: machine_container
+    build: ./Machine
+    restart: on-failure
+    depends_on:
+      - washdb-service
+      - rabbit-mq
+    links:
+      - washdb-service
+      - rabbit-mq
+    environment:
+      - NODE_ENV=PROD
+      - BROKER_URL=amqp://rabbit-mq
+      - ORDER_IP=order-service
