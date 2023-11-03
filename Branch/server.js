@@ -2,25 +2,32 @@ require("dotenv").config({ path: "./config.env" });
 
 const PROTO_PATH_Branch = "./proto/branch.proto";
 const PROTO_PATH_Locker = "./proto/locker.proto";
+const NODE_ENV = process.env.NODE_ENV || "DEV";
+const BRANCH_DATABASE_URL = process.env[`${NODE_ENV}_BRANCH_DATABASE_URL`];
+const LOCKER_DATABASE_URL = process.env[`${NODE_ENV}_LOCKER_DATABASE_URL`];
+const PORT = process.env.PORT || 30043;
+const IP = process.env[`${NODE_ENV}_IP`] || "0.0.0.0";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
-const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
+const machineService = require("./stub/machineService");
 
-mongoose.connect(process.env.DATABASE_URL, {
+// Database setup
+const mongoose = require("mongoose");
+const lockerDB = mongoose.createConnection(LOCKER_DATABASE_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
-const db = mongoose.connection;
-db.on("error", (error) => console.error(error));
-db.once("open", () => console.log("Connected to Database"));
-
-const Branch = require("./model/branch");
-const Locker = require("./model/locker");
-
-const machineService = require("./stub/machineService");
+const branchDB = mongoose.createConnection(BRANCH_DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const branchSchema = require("./model/branch");
+const lockerSchema = require("./model/locker");
+const Branch = branchDB.model("Branch", branchSchema);
+const Locker = lockerDB.model("Locker", lockerSchema);
+//
 
 var packageDefinition_Branch = protoLoader.loadSync(PROTO_PATH_Branch, {
   keepCase: true,
@@ -179,13 +186,11 @@ server.addService(protoDescriptor_Locker.LockerService.service, {
   },
 });
 
-const PORT = process.env.PORT || 30043;
-
 server.bindAsync(
-  `127.0.0.1:${PORT}`,
+  `${IP}:${PORT}`,
   grpc.ServerCredentials.createInsecure(),
   () => {
     server.start();
-    console.log(`Branch Service Started at PORT ${PORT}`);
+    console.log(`Branch Service Started at PORT ${IP}:${PORT}`);
   }
 );

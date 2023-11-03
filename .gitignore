@@ -1,4 +1,5 @@
 WebServer/node_modules
+APIGateway/node_modules
 Auth/node_modules
 Auth/config.env
 Branch/node_modules
@@ -14,4 +15,3 @@ Notification/washout-334d6-firebase-adminsdk-h65wc-138255580b.json
 db_auth/*
 db_branch/*
 db_washing/*
-APIGateway/node_modules

@@ -2,9 +2,11 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
+const AUTH_URL = process.env.AUTH_URL || "http://localhost:3003/";
+
 router.get("/:uid", (req, res) => {
   axios
-    .get("http://localhost:3003/users/" + req.params.uid, {
+    .get(AUTH_URL + "users/" + req.params.uid, {
       headers: { Authorization: req.headers["authorization"] },
     })
     .then(function (response) {

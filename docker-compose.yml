@@ -50,8 +50,6 @@ services:
       - PROD_IP=order-service
     links:
       - washdb-service
-    ports:
-      - "30046:30046"
   noti-service:
     container_name: noti_container
     build: ./Notification
@@ -77,3 +75,58 @@ services:
       - NODE_ENV=PROD
       - BROKER_URL=amqp://rabbit-mq
       - ORDER_IP=order-service
+    ports:
+      - "30044:30044"
+  branch-service:
+    container_name: branch_container
+    build: ./Branch
+    depends_on:
+      - branchdb-service
+    links:
+      - branchdb-service
+    environment:
+      - NODE_ENV=PROD
+      - MACHINE_IP=machine-service
+  auth-service:
+    container_name: auth_container
+    build: ./Auth
+    depends_on:
+      - authdb-service
+    links:
+      - authdb-service
+    restart: on-failure
+  webserver:
+    container_name: webserver_container
+    build: ./WebServer
+    links:
+      - auth-service
+      - machine-service
+      - branch-service
+    external_links:
+      - frontend
+    environment:
+      - MACHINE_IP=machine-service
+      - BRANCH_IP=branch-service
+      - AUTH_URL=http://auth-service:3003/
+    networks:
+      - washout
+    ports:
+      - "3001:3001"
+  apigateway:
+    container_name: apigateway_container
+    build: ./APIGateway
+    links:
+      - auth-service
+      - machine-service
+      - branch-service
+    environment:
+      - ORDER_IP=order-services
+      - MACHINE_IP=machine-service
+      - BRANCH_IP=branch-service
+      - AUTH_URL=http://auth-service:3003/
+    ports:
+      - "3004:3004"
+
+networks:
+  washout:
+    name: washout-network

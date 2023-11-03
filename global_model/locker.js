@@ -9,7 +9,7 @@ const lockerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  userId: {
+  orderId: {
     type: String,
     default: null,
   },
