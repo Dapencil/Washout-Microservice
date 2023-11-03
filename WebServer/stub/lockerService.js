@@ -1,5 +1,5 @@
 const PROTO_PATH = "./proto/locker.proto";
-const LOCKER_IP = process.env.LOCKER_IP || "localhost";
+const LOCKER_IP = process.env.BRANCH_IP || "localhost";
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
 

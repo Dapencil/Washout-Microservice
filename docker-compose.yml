@@ -102,3 +102,31 @@ services:
       - auth-service
       - machine-service
       - branch-service
+    external_links:
+      - frontend
+    environment:
+      - MACHINE_IP=machine-service
+      - BRANCH_IP=branch-service
+      - AUTH_URL=http://auth-service:3003/
+    networks:
+      - washout
+    ports:
+      - "3001:3001"
+  apigateway:
+    container_name: apigateway_container
+    build: ./APIGateway
+    links:
+      - auth-service
+      - machine-service
+      - branch-service
+    environment:
+      - ORDER_IP=order-services
+      - MACHINE_IP=machine-service
+      - BRANCH_IP=branch-service
+      - AUTH_URL=http://auth-service:3003/
+    ports:
+      - "3004:3004"
+
+networks:
+  washout:
+    name: washout-network
