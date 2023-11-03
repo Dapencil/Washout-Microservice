@@ -31,4 +31,17 @@ router.post("/login", (req, res) => {
     });
 });
 
+router.post("/register", (req, res) => {
+  axios
+    .post("http://localhost:3003/user", req.body, {})
+    .then(function (response) {
+      console.log(response);
+      res.json(response.data);
+    })
+    .catch(function (error) {
+      // handle error
+      console.log(error);
+    });
+});
+
 module.exports = router;

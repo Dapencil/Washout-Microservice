@@ -102,7 +102,7 @@ app.get("/", accessTokenValidate, async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, deviceToken } = req.body;
 
   try {
     const conn = await pool.getConnection();
@@ -119,6 +119,12 @@ app.post("/login", async (req, res) => {
     // Compare the newly hashed password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
+      if (user.role === "user") {
+        await conn.query(
+          `UPDATE ${USER_TABLE} SET deviceToken = ? WHERE username = ?`,
+          [deviceToken, username]
+        );
+      }
       const userDummy =
         user.role === "staff"
           ? { uid: user.uid, role: user.role, branchId: user.branchId }
