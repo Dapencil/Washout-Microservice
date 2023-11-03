@@ -160,12 +160,12 @@ app.post("/refreshToken", refreshTokenValidate, async (req, res) => {
 });
 
 app.post("/user", async (req, res) => {
-  const { username, password, deviceToken } = req.body;
+  const { username, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const conn = await pool.getConnection();
-    const queryString = `INSERT INTO ${DB_TABLE}(uid, branchID, username, password, role, deviceToken) VALUES (DEFAULT,DEFAULT,?, ?, DEFAULT,?)`;
-    await conn.query(queryString, [username, hashedPassword, deviceToken]);
+    const queryString = `INSERT INTO ${DB_TABLE}(uid, username, password, role, deviceToken) VALUES (DEFAULT,?, ?, DEFAULT,DEFAULT)`;
+    await conn.query(queryString, [username, hashedPassword]);
     res.status(200).json({ message: "Signup Complete" });
   } catch (e) {
     console.log(e);
@@ -196,14 +196,14 @@ app.get("/staffs/", accessTokenValidate, async (req, res) => {
 
 app.get("/users/:uid", accessTokenValidate, async (req, res) => {
   const conn = await pool.getConnection();
-  const queryString = `SELECT uid, username  FROM ${DB_TABLE} WHERE uid = ?`;
+  const queryString = `SELECT uid, username FROM ${DB_TABLE} WHERE uid = ?`;
   const [results] = await conn.query(queryString, [req.params.uid]);
   res.json(results);
 });
 
 app.get("/staffs/:uid", accessTokenValidate, async (req, res) => {
   const conn = await pool.getConnection();
-  const queryString = `SELECT uid, branchID, fName, lName  FROM ${DB_Staff} WHERE uid = ?`;
+  const queryString = `SELECT uid, branchID, fName, lName FROM ${DB_Staff} WHERE uid = ?`;
   const [results] = await conn.query(queryString, [req.params.uid]);
   res.json(results);
 });
@@ -213,7 +213,7 @@ app.post("/staffs/", accessTokenValidate, async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const conn = await pool.getConnection();
-    const queryString_addUser = `INSERT INTO ${DB_TABLE}(uid, branchID, username, password, role, deviceToken) VALUES (DEFAULT, ?, ?, ?, "staff", NULL)`;
+    const queryString_addUser = `INSERT INTO ${DB_TABLE}(uid, username, password, role, deviceToken) VALUES (DEFAULT, ?, ?, "staff", NULL)`;
     await conn.query(queryString_addUser, [branchID, username, hashedPassword]);
     const queryString_getUID = `SELECT uid FROM ${DB_TABLE} WHERE username = ?`;
     const [results] = await conn.query(queryString_getUID, [username]);
