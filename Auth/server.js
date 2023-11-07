@@ -116,6 +116,10 @@ app.post("/login", async (req, res) => {
     }
 
     const user = results;
+    const [getBranchId] = await conn.query(
+      `SELECT branchId FROM ${STAFF_TABLE} WHERE uid = ?`,
+      [user.uid]
+    );
     // Compare the newly hashed password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
@@ -127,7 +131,7 @@ app.post("/login", async (req, res) => {
       }
       const userDummy =
         user.role === "staff"
-          ? { uid: user.uid, role: user.role, branchId: user.branchId }
+          ? { uid: user.uid, role: user.role, branchId: getBranchId.branchId }
           : { uid: user.uid, role: user.role };
       const access_token = generateAccessToken(userDummy);
       const refresh_token = generateRefreshToken(userDummy);
