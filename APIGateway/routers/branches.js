@@ -1,11 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const branchService = require("../stub/branchService");
+const machineService = require("../stub/machineService");
 
 router.get("/", (req, res) => {
   branchService.getAll(null, (err, data) => {
     if (!err) {
-      res.json(data);
+      let branches = data.branches;
+
+      // let results = branches.map(async (branch) => {
+      //   machineService.getFromBranch(
+      //     { branchId: branches[0].id },
+      //     (err, data2) => {
+      //       if (!err) {
+      //         console.log(data2);
+      //       } else {
+      //         return;
+      //       }
+      //     }
+      //   ); // res.json(results);
+      // });
+      res.json(results);
     }
   });
 });
