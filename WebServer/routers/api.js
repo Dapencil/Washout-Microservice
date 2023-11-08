@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authen");
 const axios = require("axios");
+const AUTH_URL = process.env.AUTH_URL || "http://localhost:3003/";
 
 const machinesRouter = require("./machines");
 const branchesRouter = require("./branches");
@@ -21,7 +22,7 @@ router.use("/staffs", staffsRouter);
 
 router.post("/login", (req, res) => {
   axios
-    .post("http://localhost:3003/login", req.body, {})
+    .post(AUTH_URL + "login", req.body, {})
     .then(function (response) {
       console.log(response);
       res.json(response.data);

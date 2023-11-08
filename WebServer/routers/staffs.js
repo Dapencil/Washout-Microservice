@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
+const AUTH_URL = process.env.AUTH_URL || "http://localhost:3003/";
 
 router.get("/", (req, res) => {
   axios
-    .get("http://localhost:3003/staffs", {
+    .get(AUTH_URL + "staffs", {
       headers: { Authorization: req.headers["authorization"] },
     })
     .then(function (response) {
@@ -20,7 +21,7 @@ router.get("/", (req, res) => {
 
 router.get("/:uid", (req, res) => {
   axios
-    .get("http://localhost:3003/staffs/" + req.params.uid, {
+    .get(AUTH_URL + "staffs/" + req.params.uid, {
       headers: { Authorization: req.headers["authorization"] },
     })
     .then(function (response) {
@@ -36,7 +37,7 @@ router.get("/:uid", (req, res) => {
 
 router.post("/", (req, res) => {
   axios
-    .post("http://localhost:3003/staffs", req.body, {
+    .post(AUTH_URL + "staffs", req.body, {
       headers: {
         Authorization: req.headers["authorization"],
       },
@@ -53,7 +54,7 @@ router.post("/", (req, res) => {
 
 router.patch("/:uid", (req, res) => {
   axios
-    .patch("http://localhost:3003/staffs/" + req.params.uid, req.body, {
+    .patch(AUTH_URL + "staffs/" + req.params.uid, req.body, {
       headers: {
         Authorization: req.headers["authorization"],
       },
@@ -70,7 +71,7 @@ router.patch("/:uid", (req, res) => {
 
 router.delete("/:uid", (req, res) => {
   axios
-    .delete("http://localhost:3003/staffs/" + req.params.uid, {
+    .delete(AUTH_URL + "staffs/" + req.params.uid, {
       headers: {
         Authorization: req.headers["authorization"],
       },
