@@ -9,7 +9,7 @@ router.get("/", (req, res) => {
       headers: { Authorization: req.headers["authorization"] },
     })
     .then(function (response) {
-      console.log(response);
+      console.log(response.data);
       res.json(response.data);
     })
     .catch(function (error) {
@@ -25,7 +25,7 @@ router.get("/:uid", (req, res) => {
       headers: { Authorization: req.headers["authorization"] },
     })
     .then(function (response) {
-      console.log(response);
+      console.log(response.data);
       res.json(response.data);
     })
     .catch(function (error) {
@@ -43,7 +43,7 @@ router.post("/", (req, res) => {
       },
     })
     .then(function (response) {
-      console.log(response);
+      console.log(response.data);
       res.json(response.data);
     })
     .catch(function (error) {
@@ -60,7 +60,7 @@ router.patch("/:uid", (req, res) => {
       },
     })
     .then(function (response) {
-      console.log(response);
+      console.log(response.data);
       res.json(response.data);
     })
     .catch(function (error) {
@@ -77,7 +77,7 @@ router.delete("/:uid", (req, res) => {
       },
     })
     .then(function (response) {
-      console.log(response);
+      console.log(response.data);
       res.json(response.data);
     })
     .catch(function (error) {

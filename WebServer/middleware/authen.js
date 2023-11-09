@@ -12,6 +12,7 @@ const auth = (role) => {
           res.status(200);
           next();
         } else {
+          console.log(`Require ${role} : Got ${response.data.role}`);
           res.status(403).json({ error: "Forbidden" }).end();
         }
       })

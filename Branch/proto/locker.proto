@@ -15,7 +15,7 @@ message Empty{}
 message LockerItem {
     string id=1;
     string branchId=2;
-    string userId=3;
+    string orderId=3;
 }
 
 message LockerList {

@@ -94,18 +94,23 @@ const refreshTokenValidate = (req, res, next) => {
 };
 
 app.get("/", accessTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT role FROM ${USER_TABLE} WHERE uid = ?`;
-  const [results] = await conn.query(queryString, [req.user.uid]);
-  console.log("have req");
-  res.json(results);
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const queryString = `SELECT role FROM ${USER_TABLE} WHERE uid = ?`;
+    const [results] = await conn.query(queryString, [req.user.uid]);
+    res.json(results);
+  } catch (error) {
+  } finally {
+    if (conn) conn.release();
+  }
 });
 
 app.post("/login", async (req, res) => {
   const { username, password, deviceToken } = req.body;
-
+  let conn;
   try {
-    const conn = await pool.getConnection();
+    conn = await pool.getConnection();
     const [results] = await conn.query(
       `SELECT * FROM ${USER_TABLE} WHERE username = ?`,
       [username]
@@ -149,83 +154,125 @@ app.post("/login", async (req, res) => {
     // Handle errors and log them
     console.error("Error:", err);
     res.status(500).json({ error: "Internal server error" });
+  } finally {
+    if (conn) conn.release();
   }
 });
 
 app.post("/refreshToken", refreshTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT * FROM ${USER_TABLE} WHERE uid = ? `;
-  const [results] = await conn.query(queryString, [req.user.uid]);
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const queryString = `SELECT * FROM ${USER_TABLE} WHERE uid = ? `;
+    const [results] = await conn.query(queryString, [req.user.uid]);
 
-  if (results.length === 0) {
-    return res.status(400).json({ error: "User not found" });
+    if (results.length === 0) {
+      return res.status(400).json({ error: "User not found" });
+    }
+    const user = results;
+    const access_token = generateAccessToken(user);
+    const refresh_token = generateRefreshToken(user);
+
+    return res.json({
+      access_token,
+      refresh_token,
+    });
+  } catch (error) {
+  } finally {
+    if (conn) conn.release(); //release to pool
   }
-  const user = results;
-  const access_token = generateAccessToken(user);
-  const refresh_token = generateRefreshToken(user);
-
-  return res.json({
-    access_token,
-    refresh_token,
-  });
 });
 
 app.post("/user", async (req, res) => {
   const { username, password } = req.body;
+  let conn;
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const conn = await pool.getConnection();
+    conn = await pool.getConnection();
     const queryString = `INSERT INTO ${USER_TABLE}(uid, username, password, role, deviceToken) VALUES (DEFAULT,?, ?, DEFAULT,DEFAULT)`;
     await conn.query(queryString, [username, hashedPassword]);
     res.status(200).json({ message: "Signup Complete" });
   } catch (e) {
     console.log(e);
     res.json({ message: "Error" });
+  } finally {
+    if (conn) conn.release(); //release to pool
   }
 });
 
 app.get("/deviceToken/:uid", accessTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT deviceToken FROM ${USER_TABLE} WHERE uid = ?`;
-  const [results] = await conn.query(queryString, [req.params.uid]);
-  res.json(results);
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const queryString = `SELECT deviceToken FROM ${USER_TABLE} WHERE uid = ?`;
+    const [results] = await conn.query(queryString, [req.params.uid]);
+    res.json(results);
+  } catch (error) {
+  } finally {
+    if (conn) conn.release(); //release to pool
+  }
 });
 
 app.get("/getUID", accessTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT uid FROM ${USER_TABLE} WHERE uid = ?`;
-  const [results] = await conn.query(queryString, [req.user.uid]);
-  res.json(results);
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const queryString = `SELECT uid FROM ${USER_TABLE} WHERE uid = ?`;
+    const [results] = await conn.query(queryString, [req.user.uid]);
+    res.json(results);
+  } catch (error) {
+  } finally {
+    if (conn) conn.release(); //release to pool
+  }
 });
 
-app.get("/staffs/", accessTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT uid, branchId, fName, lName FROM staff`;
-  const results = await conn.query(queryString, []);
-  res.json(results);
+app.get("/staffs", accessTokenValidate, async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const queryString = `SELECT uid, branchId, fName, lName FROM ${STAFF_TABLE}`;
+    const results = await conn.query(queryString, []);
+    res.json(results);
+  } catch (error) {
+  } finally {
+    if (conn) conn.release(); //release to pool
+  }
 });
 
 app.get("/users/:uid", accessTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT uid, username FROM ${USER_TABLE} WHERE uid = ?`;
-  const [results] = await conn.query(queryString, [req.params.uid]);
-  res.json(results);
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const queryString = `SELECT uid, username FROM ${USER_TABLE} WHERE uid = ?`;
+    const [results] = await conn.query(queryString, [req.params.uid]);
+    res.json(results);
+  } catch (error) {
+  } finally {
+    if (conn) conn.release(); //release to pool
+  }
 });
 
 app.get("/staffs/:uid", accessTokenValidate, async (req, res) => {
-  const conn = await pool.getConnection();
-  const queryString = `SELECT uid, branchId, fName, lName FROM ${STAFF_TABLE} WHERE uid = ?`;
-  const [results] = await conn.query(queryString, [req.params.uid]);
-  res.json(results);
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const queryString = `SELECT uid, branchId, fName, lName FROM ${STAFF_TABLE} WHERE uid = ?`;
+    const [results] = await conn.query(queryString, [req.params.uid]);
+    res.json(results);
+  } catch (error) {
+  } finally {
+    if (conn) conn.release(); //release to pool
+  }
 });
 
-app.post("/staffs/", accessTokenValidate, async (req, res) => {
+app.post("/staffs", accessTokenValidate, async (req, res) => {
   const { branchId, username, password, fName, lName } = req.body;
+  let conn;
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const conn = await pool.getConnection();
+    conn = await pool.getConnection();
     const queryString_addUser = `INSERT INTO ${USER_TABLE}(uid, username, password, role, deviceToken) VALUES (DEFAULT, ?, ?, "staff", NULL)`;
-    await conn.query(queryString_addUser, [branchId, username, hashedPassword]);
+    await conn.query(queryString_addUser, [username, hashedPassword]);
     const queryString_getUID = `SELECT uid FROM ${USER_TABLE} WHERE username = ?`;
     const [results] = await conn.query(queryString_getUID, [username]);
     const queryString_addStaff = `INSERT INTO ${STAFF_TABLE}(id, uid, branchId, fName, lName) VALUES (DEFAULT, ?, ?, ?, ?)`;
@@ -240,25 +287,31 @@ app.post("/staffs/", accessTokenValidate, async (req, res) => {
   } catch (e) {
     console.log(e);
     res.json({ message: "Error" });
+  } finally {
+    if (conn) conn.release(); //release to pool
   }
 });
 
 app.patch("/staffs/:uid", accessTokenValidate, async (req, res) => {
   const { branchId } = req.body;
+  let conn;
   try {
-    const conn = await pool.getConnection();
+    conn = await pool.getConnection();
     const queryString = `UPDATE ${STAFF_TABLE} SET branchId = ? WHERE uid = ?`;
     await conn.query(queryString, [branchId, req.params.uid]);
     res.status(200).json({ message: "Update branchId successfully" });
   } catch (e) {
     console.log(e);
     res.json({ message: "Error" });
+  } finally {
+    if (conn) conn.release(); //release to pool
   }
 });
 
 app.delete("/staffs/:uid", accessTokenValidate, async (req, res) => {
+  let conn;
   try {
-    const conn = await pool.getConnection();
+    conn = await pool.getConnection();
     const queryString_delStaff = `DELETE FROM ${STAFF_TABLE} WHERE uid = ?`;
     await conn.query(queryString_delStaff, [req.params.uid]);
     const queryString_delUser = `DELETE FROM ${USER_TABLE} WHERE uid = ?`;
@@ -267,6 +320,8 @@ app.delete("/staffs/:uid", accessTokenValidate, async (req, res) => {
   } catch (e) {
     console.log(e);
     res.json({ message: "Error" });
+  } finally {
+    if (conn) conn.release();
   }
 });
 

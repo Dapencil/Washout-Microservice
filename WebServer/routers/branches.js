@@ -39,7 +39,7 @@ router.post("/", (req, res) => {
 
 router.patch("/:id", (req, res) => {
   const updateBranchItem = {
-    id: req.body.id,
+    id: req.params.id,
     name: req.body.name,
     address: req.body.address,
     telNum: req.body.telNum,

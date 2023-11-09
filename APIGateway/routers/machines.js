@@ -3,6 +3,7 @@ const router = express.Router();
 const machineService = require("../stub/machineService");
 const branchService = require("../stub/branchService");
 
+// required?
 router.get("/", (req, res) => {
   machineService.getAll(null, (err, data1) => {
     if (!err) {
@@ -25,6 +26,7 @@ router.get("/", (req, res) => {
   });
 });
 
+// required?
 router.get("/machineId/:id", (req, res) => {
   machineService.get({ id: req.params.id }, (err, data) => {
     if (!err) {

@@ -24,7 +24,7 @@ router.post("/login", (req, res) => {
   axios
     .post(AUTH_URL + "login", req.body, {})
     .then(function (response) {
-      console.log(response);
+      console.log(response.data);
       res.json(response.data);
     })
     .catch(function (error) {

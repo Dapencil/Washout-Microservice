@@ -7,7 +7,7 @@ router.get("/", (req, res) => {
   branchService.getAll(null, (err, data) => {
     if (!err) {
       let branches = data.branches;
-
+      res.json(data);
       // let results = branches.map(async (branch) => {
       //   machineService.getFromBranch(
       //     { branchId: branches[0].id },
@@ -20,7 +20,7 @@ router.get("/", (req, res) => {
       //     }
       //   ); // res.json(results);
       // });
-      res.json(results);
+      // res.json(results);
     }
   });
 });

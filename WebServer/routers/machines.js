@@ -4,6 +4,7 @@ const machineService = require("../stub/machineService");
 const branchService = require("../stub/branchService");
 
 router.get("/", (req, res) => {
+  console.log("Got Request to Machine");
   machineService.getAll(null, (err, data1) => {
     if (!err) {
       branchService.getAll(null, (err2, data2) => {
@@ -19,8 +20,12 @@ router.get("/", (req, res) => {
             branchName: branches[machine.branchId],
           }));
           res.json(machines);
+        } else {
+          res.status(500);
         }
       });
+    } else {
+      res.status(500);
     }
   });
 });
@@ -53,7 +58,7 @@ router.post("/", (req, res) => {
 
 router.patch("/:id", (req, res) => {
   const updateMachineItem = {
-    id: req.body.id,
+    id: req.params.id,
     branchId: req.body.branchId,
     machineType: req.body.machineType,
   };
