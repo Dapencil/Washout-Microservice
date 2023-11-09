@@ -184,13 +184,13 @@ app.post("/refreshToken", refreshTokenValidate, async (req, res) => {
 });
 
 app.post("/user", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, deviceToken } = req.body;
   let conn;
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     conn = await pool.getConnection();
-    const queryString = `INSERT INTO ${USER_TABLE}(uid, username, password, role, deviceToken) VALUES (DEFAULT,?, ?, DEFAULT,DEFAULT)`;
-    await conn.query(queryString, [username, hashedPassword]);
+    const queryString = `INSERT INTO ${USER_TABLE}(uid, username, password, role, deviceToken) VALUES (DEFAULT,?, ?, DEFAULT,?)`;
+    await conn.query(queryString, [username, hashedPassword, deviceToken]);
     res.status(200).json({ message: "Signup Complete" });
   } catch (e) {
     console.log(e);

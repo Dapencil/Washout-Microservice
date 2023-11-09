@@ -39,6 +39,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  iot-stub:
+    container_name: iot_container
+    build: ./IOT
 
   order-service:
     container_name: order_container

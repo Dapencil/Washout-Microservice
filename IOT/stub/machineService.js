@@ -1,4 +1,5 @@
 const PROTO_PATH = "./proto/machine.proto";
+const MACHINE_IP = process.env.MACHINE_IP || "localhost";
 
 let grpc = require("@grpc/grpc-js");
 let protoLoader = require("@grpc/proto-loader");
@@ -14,7 +15,7 @@ let protoDescriptor =
   grpc.loadPackageDefinition(packageDefinition).MachineService;
 
 const machineService = new protoDescriptor(
-  "localhost:30044",
+  `${MACHINE_IP}:30044`,
   grpc.credentials.createInsecure()
 );
 

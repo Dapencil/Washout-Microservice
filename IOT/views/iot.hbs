@@ -71,7 +71,7 @@
                 >Close</a>
                 <a
                   href="javascript:void(0);"
-                  class="btn btn-sm start-machine btn-success"
+                  class="btn btn-sm start-machine btn-success disabled"
                   data-id="{{id}}"
                 >Start</a>
                 <a
@@ -104,22 +104,22 @@
     <script>
       $(document).ready(function () {
       $('#Menus_table').on('click','.open-door',function () { const machineId =
-      $(this).data('id'); const url ='http://localhost:3009/open/' + machineId;
+      $(this).data('id'); const url ='http://localhost:30009/open/' + machineId;
       console.log(machineId); jQuery.ajax({ type: 'POST', url: url, data:
       $('#add-row-form').serialize(), success: function (response) {
       window.location.reload(); }, error: function (error) { } }) }).on('click',
       '.close-door', function () { const machineId = $(this).data('id'); const
-      url = 'http://localhost:3009/close/' + machineId; console.log(machineId);
+      url = 'http://localhost:30009/close/' + machineId; console.log(machineId);
       jQuery.ajax({ type: 'POST', url: url, data:
       $('#add-row-form').serialize(), success: function (response) {
       window.location.reload(); }, error: function (error) { } }) }).on('click',
       '.start-machine', function () { const machineId = $(this).data('id');
-      const url = 'http://localhost:3009/start/' + machineId;
+      const url = 'http://localhost:30009/start/' + machineId;
       console.log(machineId); jQuery.ajax({ type: 'POST', url: url, data:
       $('#add-row-form').serialize(), success: function (response) {
       window.location.reload(); }, error: function (error) { } }) }).on('click',
       '.force-finish', function () { const machineId = $(this).data('id'); const
-      url = 'http://localhost:3009/forceFinish/' + machineId;
+      url = 'http://localhost:30009/forceFinish/' + machineId;
       console.log(machineId); jQuery.ajax({ type: 'POST', url: url, data:
       $('#add-row-form').serialize(), success: function (response) {
       window.location.reload(); }, error: function (error) { } }) }); });
