@@ -54,7 +54,7 @@ router.get("/branchId/:branchId", (req, res) => {
   );
 });
 
-router.get("/start", (req, res) => {
+router.post("/start", (req, res) => {
   machineService.start(
     { machineId: req.body.machineId, userId: req.body.userId },
     (err, data) => {

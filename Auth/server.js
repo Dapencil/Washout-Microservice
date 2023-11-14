@@ -200,7 +200,7 @@ app.post("/user", async (req, res) => {
   }
 });
 
-app.get("/deviceToken/:uid", accessTokenValidate, async (req, res) => {
+app.get("/deviceToken/:uid", async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
@@ -208,6 +208,7 @@ app.get("/deviceToken/:uid", accessTokenValidate, async (req, res) => {
     const [results] = await conn.query(queryString, [req.params.uid]);
     res.json(results);
   } catch (error) {
+    console.log(error);
   } finally {
     if (conn) conn.release(); //release to pool
   }

@@ -3,7 +3,7 @@ const router = express.Router();
 const machineService = require("../stub/machineService");
 const branchService = require("../stub/branchService");
 
-router.get("/", (req, res) => {
+router.get("/", auth("admin"), (req, res) => {
   console.log("Got Request to Machine");
   machineService.getAll(null, (err, data1) => {
     if (!err) {
@@ -30,7 +30,7 @@ router.get("/", (req, res) => {
   });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", auth("admin"), (req, res) => {
   machineService.get({ id: req.params.id }, (err, data) => {
     if (!err) {
       res.json(data);
@@ -42,7 +42,7 @@ router.get("/:id", (req, res) => {
   });
 });
 
-router.post("/", (req, res) => {
+router.post("/", auth("admin"), (req, res) => {
   let newMachineItem = {
     branchId: req.body.branchId,
     machineType: req.body.machineType,
@@ -56,7 +56,7 @@ router.post("/", (req, res) => {
   });
 });
 
-router.patch("/:id", (req, res) => {
+router.patch("/:id", auth("admin"), (req, res) => {
   const updateMachineItem = {
     id: req.params.id,
     branchId: req.body.branchId,
@@ -71,7 +71,7 @@ router.patch("/:id", (req, res) => {
   });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", auth("admin"), (req, res) => {
   machineService.remove({ id: req.params.id }, (err, _) => {
     if (err)
       res
@@ -80,6 +80,16 @@ router.delete("/:id", (req, res) => {
     console.log("Machine Item removed successfully");
     res.sendStatus(200);
   });
+});
+
+router.get("/finished/:branchId", auth("staff"), (req, res) => {
+  machineService.getFinishedInBranch(
+    { branchId: req.params.branchId },
+    (err, data) => {
+      if (err) throw err;
+      res.json(data);
+    }
+  );
 });
 
 module.exports = router;

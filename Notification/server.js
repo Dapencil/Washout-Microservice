@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "./config.env" });
 
 const BROKER_URL = process.env.BROKER_URL || "amqp://localhost";
-const AUTH_URL = process.env.AUTH_URL || "http://localhost:3001/deviceToken";
+const AUTH_URL = process.env.AUTH_URL || "http://localhost:3003/deviceToken";
 const QUEUE_NAME = process.env.QUEUE_NAME || "noti_queue";
 
 const { getMessaging } = require("firebase-admin/messaging");
@@ -30,23 +30,20 @@ amqp.connect(BROKER_URL, function (error0, connection) {
       console.log("Connected to Rabbit MQ");
       channel.consume(
         q.queue,
-        function (msg) {
+        async function (msg) {
           let uid, remainingTime;
-          [uid, remainingTime] = msg.content.toString().split();
+          [uid, remainingTime] = msg.content.toString().split(" ");
           remainingTime = parseInt(remainingTime);
-          let deviceToken = getDeviceToken(uid);
-          let notification = generateNoti(deviceToken, remainingTime);
-
-          // Send notification to Firebase
-          getMessaging()
-            .send(notification)
-            .then((res) => {
-              console.log(res);
-              channel.ack(msg);
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+          try {
+            let notification = await generateNoti(uid, remainingTime);
+            console.log(`UID : ${uid}, Remaining Time: ${remainingTime}`);
+            console.log(notification);
+            // Send notification to Firebase
+            await getMessaging().send(notification);
+            channel.ack(msg);
+          } catch (err) {
+            console.error(err);
+          }
         },
         {
           noAck: false,
@@ -57,33 +54,63 @@ amqp.connect(BROKER_URL, function (error0, connection) {
 });
 
 // Util Function
-const getDeviceToken = (uid) => {
-  axios
-    .get(AUTH_URL + `/${uid}`)
-    .then((res) => {
-      return res.data;
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });
-};
+// const getDeviceToken = (uid) => {};
 
-const generateNoti = (deviceToken, remainingTime) => {
+const generateNoti = async (uid, remainingTime) => {
   let noti = {
-    token: deviceToken,
+    token: "",
     notification: {
       title: "",
       body: "",
     },
   };
 
-  if (remainingTime == 5) {
-    noti.notification.title = "ซักผ้าใกล้เสร็จแล้ว";
-    noti.notification.body =
-      "เหลือเวลาอีกประมาณ 5 นาที เตรียมตัวไปเอาผ้ากันเถอะ~";
-  } else if (remainingTime == 0) {
-    noti.notification.title = "ซักเสร็จแล้ว";
-    noti.notification.body = "ตอนนี้ผ้าของคุณซักเสร็จแล้ว รีบไปเอาผ้าเร็วเข้า!";
+  try {
+    const response = await axios.get(AUTH_URL + `/${uid}`);
+    noti.token = response.data.deviceToken;
+
+    if (remainingTime == 5) {
+      noti.notification.title = "ซักผ้าใกล้เสร็จแล้ว";
+      noti.notification.body =
+        "เหลือเวลาอีกประมาณ 5 นาที เตรียมตัวไปเอาผ้ากันเถอะ~";
+    } else if (remainingTime == 0) {
+      noti.notification.title = "ซักเสร็จแล้ว";
+      noti.notification.body =
+        "ตอนนี้ผ้าของคุณซักเสร็จแล้ว รีบไปเอาผ้าเร็วเข้า!";
+    }
+    return noti;
+  } catch (err) {
+    console.error(err.message);
+    throw err; // Rethrow the error to be caught in the calling function
   }
-  return noti;
 };
+
+// const generateNoti = async (uid, remainingTime) => {
+//   let noti = {
+//     token: "",
+//     notification: {
+//       title: "",
+//       body: "",
+//     },
+//   };
+
+//   axios
+//     .get(AUTH_URL + `/${uid}`)
+//     .then((res) => {
+//       if (remainingTime == 5) {
+//         noti.notification.title = "ซักผ้าใกล้เสร็จแล้ว";
+//         noti.notification.body =
+//           "เหลือเวลาอีกประมาณ 5 นาที เตรียมตัวไปเอาผ้ากันเถอะ~";
+//       } else if (remainingTime == 0) {
+//         noti.notification.title = "ซักเสร็จแล้ว";
+//         noti.notification.body =
+//           "ตอนนี้ผ้าของคุณซักเสร็จแล้ว รีบไปเอาผ้าเร็วเข้า!";
+//       }
+//       noti.token = res.data.deviceToken;
+//       console.log("From inner", noti);
+//       return noti;
+//     })
+//     .catch((err) => {
+//       console.log(err.message);
+//     });
+// };
